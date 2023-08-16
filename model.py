@@ -6,6 +6,7 @@ with slight modification with added BatchNorm.
 import torch
 import torch.nn as nn
 
+# ! CNN 모델 아키텍처 정의
 """ 
 Information about architecture config:
 Tuple is structured by (kernel_size, filters, stride, padding) 
@@ -34,6 +35,122 @@ architecture_config = [
     (3, 1024, 1, 1),
 ]
 
+# ! 생성된 CNN 모델 summary 결과
+# ! (3, 448, 448)의 이미지 입력
+# ! CNN.ipynb 참조
+# ? ----------------------------------------------------------------
+# ?         Layer (type)               Output Shape         Param #
+# ? ================================================================
+# ?             Conv2d-1         [-1, 64, 224, 224]           9,408
+# ?        BatchNorm2d-2         [-1, 64, 224, 224]             128
+# ?          LeakyReLU-3         [-1, 64, 224, 224]               0
+# ?           CNNBlock-4         [-1, 64, 224, 224]               0
+# ?          MaxPool2d-5         [-1, 64, 112, 112]               0
+# ?             Conv2d-6        [-1, 192, 112, 112]         110,592
+# ?        BatchNorm2d-7        [-1, 192, 112, 112]             384
+# ?          LeakyReLU-8        [-1, 192, 112, 112]               0
+# ?           CNNBlock-9        [-1, 192, 112, 112]               0
+# ?         MaxPool2d-10          [-1, 192, 56, 56]               0
+# ?            Conv2d-11          [-1, 128, 56, 56]          24,576
+# ?       BatchNorm2d-12          [-1, 128, 56, 56]             256
+# ?         LeakyReLU-13          [-1, 128, 56, 56]               0
+# ?          CNNBlock-14          [-1, 128, 56, 56]               0
+# ?            Conv2d-15          [-1, 256, 56, 56]         294,912
+# ?       BatchNorm2d-16          [-1, 256, 56, 56]             512
+# ?         LeakyReLU-17          [-1, 256, 56, 56]               0
+# ?          CNNBlock-18          [-1, 256, 56, 56]               0
+# ?            Conv2d-19          [-1, 256, 56, 56]          65,536
+# ?       BatchNorm2d-20          [-1, 256, 56, 56]             512
+# ?         LeakyReLU-21          [-1, 256, 56, 56]               0
+# ?          CNNBlock-22          [-1, 256, 56, 56]               0
+# ?            Conv2d-23          [-1, 512, 56, 56]       1,179,648
+# ?       BatchNorm2d-24          [-1, 512, 56, 56]           1,024
+# ?         LeakyReLU-25          [-1, 512, 56, 56]               0
+# ?          CNNBlock-26          [-1, 512, 56, 56]               0
+# ?         MaxPool2d-27          [-1, 512, 28, 28]               0
+# ?            Conv2d-28          [-1, 256, 28, 28]         131,072
+# ?       BatchNorm2d-29          [-1, 256, 28, 28]             512
+# ?         LeakyReLU-30          [-1, 256, 28, 28]               0
+# ?          CNNBlock-31          [-1, 256, 28, 28]               0
+# ?            Conv2d-32          [-1, 512, 28, 28]       1,179,648
+# ?       BatchNorm2d-33          [-1, 512, 28, 28]           1,024
+# ?         LeakyReLU-34          [-1, 512, 28, 28]               0
+# ?          CNNBlock-35          [-1, 512, 28, 28]               0
+# ?            Conv2d-36          [-1, 256, 28, 28]         131,072
+# ?       BatchNorm2d-37          [-1, 256, 28, 28]             512
+# ?         LeakyReLU-38          [-1, 256, 28, 28]               0
+# ?          CNNBlock-39          [-1, 256, 28, 28]               0
+# ?            Conv2d-40          [-1, 512, 28, 28]       1,179,648
+# ?       BatchNorm2d-41          [-1, 512, 28, 28]           1,024
+# ?         LeakyReLU-42          [-1, 512, 28, 28]               0
+# ?          CNNBlock-43          [-1, 512, 28, 28]               0
+# ?            Conv2d-44          [-1, 256, 28, 28]         131,072
+# ?       BatchNorm2d-45          [-1, 256, 28, 28]             512
+# ?         LeakyReLU-46          [-1, 256, 28, 28]               0
+# ?          CNNBlock-47          [-1, 256, 28, 28]               0
+# ?            Conv2d-48          [-1, 512, 28, 28]       1,179,648
+# ?       BatchNorm2d-49          [-1, 512, 28, 28]           1,024
+# ?         LeakyReLU-50          [-1, 512, 28, 28]               0
+# ?          CNNBlock-51          [-1, 512, 28, 28]               0
+# ?            Conv2d-52          [-1, 256, 28, 28]         131,072
+# ?       BatchNorm2d-53          [-1, 256, 28, 28]             512
+# ?         LeakyReLU-54          [-1, 256, 28, 28]               0
+# ?          CNNBlock-55          [-1, 256, 28, 28]               0
+# ?            Conv2d-56          [-1, 512, 28, 28]       1,179,648
+# ?       BatchNorm2d-57          [-1, 512, 28, 28]           1,024
+# ?         LeakyReLU-58          [-1, 512, 28, 28]               0
+# ?          CNNBlock-59          [-1, 512, 28, 28]               0
+# ?            Conv2d-60          [-1, 512, 28, 28]         262,144
+# ?       BatchNorm2d-61          [-1, 512, 28, 28]           1,024
+# ?         LeakyReLU-62          [-1, 512, 28, 28]               0
+# ?          CNNBlock-63          [-1, 512, 28, 28]               0
+# ?            Conv2d-64         [-1, 1024, 28, 28]       4,718,592
+# ?       BatchNorm2d-65         [-1, 1024, 28, 28]           2,048
+# ?         LeakyReLU-66         [-1, 1024, 28, 28]               0
+# ?          CNNBlock-67         [-1, 1024, 28, 28]               0
+# ?         MaxPool2d-68         [-1, 1024, 14, 14]               0
+# ?            Conv2d-69          [-1, 512, 14, 14]         524,288
+# ?       BatchNorm2d-70          [-1, 512, 14, 14]           1,024
+# ?         LeakyReLU-71          [-1, 512, 14, 14]               0
+# ?          CNNBlock-72          [-1, 512, 14, 14]               0
+# ?            Conv2d-73         [-1, 1024, 14, 14]       4,718,592
+# ?       BatchNorm2d-74         [-1, 1024, 14, 14]           2,048
+# ?         LeakyReLU-75         [-1, 1024, 14, 14]               0
+# ?          CNNBlock-76         [-1, 1024, 14, 14]               0
+# ?            Conv2d-77          [-1, 512, 14, 14]         524,288
+# ?       BatchNorm2d-78          [-1, 512, 14, 14]           1,024
+# ?         LeakyReLU-79          [-1, 512, 14, 14]               0
+# ?          CNNBlock-80          [-1, 512, 14, 14]               0
+# ?            Conv2d-81         [-1, 1024, 14, 14]       4,718,592
+# ?       BatchNorm2d-82         [-1, 1024, 14, 14]           2,048
+# ?         LeakyReLU-83         [-1, 1024, 14, 14]               0
+# ?          CNNBlock-84         [-1, 1024, 14, 14]               0
+# ?            Conv2d-85         [-1, 1024, 14, 14]       9,437,184
+# ?       BatchNorm2d-86         [-1, 1024, 14, 14]           2,048
+# ?         LeakyReLU-87         [-1, 1024, 14, 14]               0
+# ?          CNNBlock-88         [-1, 1024, 14, 14]               0
+# ?            Conv2d-89           [-1, 1024, 7, 7]       9,437,184
+# ?       BatchNorm2d-90           [-1, 1024, 7, 7]           2,048
+# ?         LeakyReLU-91           [-1, 1024, 7, 7]               0
+# ?          CNNBlock-92           [-1, 1024, 7, 7]               0
+# ?            Conv2d-93           [-1, 1024, 7, 7]       9,437,184
+# ?       BatchNorm2d-94           [-1, 1024, 7, 7]           2,048
+# ?         LeakyReLU-95           [-1, 1024, 7, 7]               0
+# ?          CNNBlock-96           [-1, 1024, 7, 7]               0
+# ?            Conv2d-97           [-1, 1024, 7, 7]       9,437,184
+# ?       BatchNorm2d-98           [-1, 1024, 7, 7]           2,048
+# ?         LeakyReLU-99           [-1, 1024, 7, 7]               0
+# ?         CNNBlock-100           [-1, 1024, 7, 7]               0
+# ? ================================================================
+# ? Total params: 60,169,152
+# ? Trainable params: 60,169,152
+# ? Non-trainable params: 0
+# ? ----------------------------------------------------------------
+# ? Input size (MB): 2.30
+# ? Forward/backward pass size (MB): 436.41
+# ? Params size (MB): 229.53
+# ? Estimated Total Size (MB): 668.23
+# ? ----------------------------------------------------------------
 
 class CNNBlock(nn.Module):
     def __init__(self, in_channels, out_channels, **kwargs):
@@ -49,14 +166,36 @@ class CNNBlock(nn.Module):
 class Yolov1(nn.Module):
     def __init__(self, in_channels=3, **kwargs):
         super(Yolov1, self).__init__()
-        self.architecture = architecture_config
+
+        # ! YOLOv1의 CNN 모델 아키텍처 정의
+        # ! 위의 architecture_config 참조
+        self.architecture = architecture_config 
+
+        # ! 모델 초기 입력 channel dimension = 3
         self.in_channels = in_channels
-        self.darknet = self._create_conv_layers(self.architecture)
+
+        # ! CNN 모델 정의
+        self.darknet = self._create_conv_layers(self.architecture) 
+
+        # ! Detection head 정의
+        # ! self._create_fcs(split_size=7, num_boxes=2, num_classes=20)
         self.fcs = self._create_fcs(**kwargs)
 
     def forward(self, x):
+
+        # ! x = (B, 3, 448, 448) -> 입력 이미지
+
+        # ! 이미지를 CNN 모델에 입력하여 features 추출
         x = self.darknet(x)
-        return self.fcs(torch.flatten(x, start_dim=1))
+        # ! x = (B, 1024, 7, 7) -> Feature maps 추출
+
+        # ! 추출된 features를 detection head로 입력하여 최종 예측 수행
+        x = torch.flatten(x, start_dim=1)
+        # ! x = (B, 50176)
+        x = self.fcs(x)
+        # ! x = (B, 1470) -> 최종 예측값
+        
+        return x
 
     def _create_conv_layers(self, architecture):
         layers = []

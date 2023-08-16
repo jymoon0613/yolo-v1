@@ -60,8 +60,22 @@ def train_fn(train_loader, model, optimizer, loss_fn):
 
     for batch_idx, (x, y) in enumerate(loop):
         x, y = x.to(DEVICE), y.to(DEVICE)
+
+        # ! x = (B, 3, 448, 448) -> 입력 이미지
+        # ! y = (B, 7, 7, 30)    -> 입력 이미지에 대한 target matrix
+
+        # ! Model output 계산
+        # ! model.Yolov1 참조
         out = model(x)
+        # ! out = (B, 1470) -> 모델 예측값
+
+        # ! Loss 계산
+        # ! loss.YoloLoss 참조
+        # ! out = (B, 1470)     -> 입력 이미지에 대한 모델 예측값
+        # ! y   = (B, 7, 7, 30) -> 입력 이미지에 대한 target matrix
         loss = loss_fn(out, y)
+        # ! loss -> scalar loss value
+
         mean_loss.append(loss.item())
         optimizer.zero_grad()
         loss.backward()
@@ -74,6 +88,8 @@ def train_fn(train_loader, model, optimizer, loss_fn):
 
 
 def main():
+
+    # TODO: 리뷰 시작
     model = Yolov1(split_size=7, num_boxes=2, num_classes=20).to(DEVICE)
     optimizer = optim.Adam(
         model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
@@ -83,6 +99,7 @@ def main():
     if LOAD_MODEL:
         load_checkpoint(torch.load(LOAD_MODEL_FILE), model, optimizer)
 
+    # ! dataset.VOCDataset 참고
     train_dataset = VOCDataset(
         "data/100examples.csv",
         transform=transform,
@@ -123,6 +140,7 @@ def main():
         #    import sys
         #    sys.exit()
 
+        # ! 평가지표 계산을 위해 bbox 예측/변환 수행
         pred_boxes, target_boxes = get_bboxes(
             train_loader, model, iou_threshold=0.5, threshold=0.4
         )
@@ -141,6 +159,7 @@ def main():
         #    import time
         #    time.sleep(10)
 
+        # ! Model training
         train_fn(train_loader, model, optimizer, loss_fn)
 
 
