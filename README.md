@@ -6,4 +6,4 @@
 
 To see my review comments, you need to add the ***Better Comments*** extension in VS Code.
 
-We pulled this code [here](https://github.com/aladdinpersson/Machine-Learning-Collection).
+This code was pulled from [here](https://github.com/aladdinpersson/Machine-Learning-Collection).
