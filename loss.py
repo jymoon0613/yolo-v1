@@ -35,12 +35,12 @@ class YoloLoss(nn.Module):
     def forward(self, predictions, target):
 
         # ! predictions = (B, 1470)     -> 입력 이미지에 대한 모델 예측값
-        # ! target      = (B, S, S, 30) -> 입력 이미지에 대한 target matrix
+        # ! target      = (B, 7, 7, 30) -> 입력 이미지에 대한 target matrix
 
         # predictions are shaped (BATCH_SIZE, S*S(C+B*5) when inputted
         # ! Reshape 진행
         predictions = predictions.reshape(-1, self.S, self.S, self.C + self.B * 5)
-        # ! predictions = (B, S, S, 30)
+        # ! predictions = (B, 7, 7, 30)
 
         # Calculate IoU for the two predicted bounding boxes with target bbox
         # ! YOLOv1은 하나의 grid cell에서 두 개의 bbox를 예측함
@@ -66,7 +66,7 @@ class YoloLoss(nn.Module):
         # ! bbox regression 수행
         # ! 먼저, 해당 grid cell에 object가 존재하는지에 대한 정보를 추출
         exists_box = target[..., 20].unsqueeze(3)  # in paper this is Iobj_i
-        # ! exists_box = (B, 7, 7, 1) -> 0은 object가 없음을 의미하고, 1은 있음을 의미함 (Iobj_i)
+        # ! exists_box = (B, 7, 7, 1) -> 0은 object가 없음을 의미하고, 1은 있음을 의미함 (Iobj)
 
         # ======================== #
         #   FOR BOX COORDINATES    #
@@ -94,7 +94,7 @@ class YoloLoss(nn.Module):
         box_targets = exists_box * target[..., 21:25] # ! (B, 7, 7, 4)
 
         # Take sqrt of width, height of boxes to ensure that
-        # ! Paper에서 w와 h에는 sqrt를 취해준뒤 mse 계산
+        # ! Paper에서 w와 h에는 sqrt를 취해준 뒤 mse 계산
         # ! 따라서 예측 bbox와 gt bbox의 w와 h에 sqrt를 취해줌
         box_predictions[..., 2:4] = torch.sign(box_predictions[..., 2:4]) * torch.sqrt(
             torch.abs(box_predictions[..., 2:4] + 1e-6)
