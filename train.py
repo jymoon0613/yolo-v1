@@ -144,9 +144,8 @@ def main():
         pred_boxes, target_boxes = get_bboxes(
             train_loader, model, iou_threshold=0.5, threshold=0.4
         )
-
-        # ! all_pred_boxes = (Qt, 7) -> 모든 Q개의 images에 대한 예측값이 (train_idx, s, c, x, y, w, h)의 형태로 저장되어 있음
-        # ! all_true_boxes = (Qp, 7) -> 모든 Q개의 images에 대한 gt label이 (train_idx, s, c, x, y, w, h)의 형태로 저장되어 있음
+        # ! pred_boxes = (Qp, 7) -> 모든 Q개의 images에 대한 예측값이 (train_idx, s, c, x, y, w, h)의 형태로 저장되어 있음
+        # ! true_boxes = (Qt, 7) -> 모든 Q개의 images에 대한 gt label이 (train_idx, s, c, x, y, w, h)의 형태로 저장되어 있음
         # ! 이때 train_idx는 예측 혹은 gt label이 속하는 이미지의 index임
 
         # ! mAP 계산

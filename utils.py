@@ -80,7 +80,7 @@ def non_max_suppression(bboxes, iou_threshold, threshold, box_format="corners"):
     """
 
     # ! NMS를 수행하는 code
-    # ! bboxes = (49, 6) -> 7x7 grid의 모든 grid cell 위치에서 예측된 class, confidence score, 최적 bbox 좌표 (x, y, w, h)
+    # ! bboxes        = (49, 6) -> 7x7 grid의 모든 grid cell 위치에서 예측된 class, confidence score, 최적 bbox 좌표 (x, y, w, h)
     # ! iou_threshold = 0.5
     # ! threshold     = 0.4
     # ! box_format    = "midpoint"
@@ -116,8 +116,8 @@ def non_max_suppression(bboxes, iou_threshold, threshold, box_format="corners"):
 
         bboxes_after_nms.append(chosen_box)
 
-    # ! NMS 이후 남아 있는 bbox의 수가 m개라고 가정함
-    # ! bboxes_after_nms = (m, 6)
+    # ! NMS 이후 남아 있는 bbox의 수가 p개라고 가정함
+    # ! bboxes_after_nms = (p, 6)
 
     return bboxes_after_nms
 
@@ -202,7 +202,7 @@ def mean_average_precision(
         total_true_bboxes = len(ground_truths) # ! gt label의 개수 = m
         
         # If none exists for this class then we can safely skip
-        # ! 만약 gt label이 하나도 존재하지 않는 경우 계산을 skip
+        # ! 만약 해당 class의 gt label이 하나도 존재하지 않는 경우 계산을 skip
         if total_true_bboxes == 0:
             continue
         
@@ -219,6 +219,8 @@ def mean_average_precision(
             num_gts = len(ground_truth_img) # ! k
             best_iou = 0
 
+            # ! 선택된 예측 bbox와 같은 이미지에 속한 gt label이 없는 경우 for문은 실행되지 않으며,
+            # ! best_iou는 0이 되어 해당 예측은 FP로 분류됨
             for idx, gt in enumerate(ground_truth_img):
                 # ! 모든 k개의 gt label과 IoU 계산
                 iou = intersection_over_union(
@@ -241,6 +243,7 @@ def mean_average_precision(
                     # true positive and add this bounding box to seen
                     TP[detection_idx] = 1
                     amount_bboxes[detection[0]][best_gt_idx] = 1
+
                 # ! 만약 해당 gt label을 detect한 예측 bbox가 이전에 있었다면,
                 # ! 이는 현재 예측값보다 높은 confidence로 해당 gt label을 예측한 결과가 있었다는 뜻이므로,
                 # ! 현재 예측값은 FP로 분류됨
@@ -253,7 +256,8 @@ def mean_average_precision(
                 FP[detection_idx] = 1
 
         # ! TP와 FP의 누적합(cumulative sum)을 계산함
-        # ! 예측값은 confidence scores를 기준으로 내림차순 정렬되어 있으므로 모든 confidence score level(threshold)에서의 TP와 FP를 한 번에 계산
+        # ! 예측값은 confidence scores를 기준으로 내림차순 정렬되어 있으므로,
+        # ! Confidence scores를 점차 낮춰갈 때 모든 confidence level에서의 TP와 FP를 한 번에 계산
         # ! ex. [1, 1, 0, 1, 0, ...] -> [1, 2, 2, 3, 3, ...]
         TP_cumsum = torch.cumsum(TP, dim=0) # ! (n,)
         FP_cumsum = torch.cumsum(FP, dim=0) # ! (n,)
@@ -270,12 +274,11 @@ def mean_average_precision(
         average_precisions.append(torch.trapz(precisions, recalls))
 
     # ! mAP를 출력함
-    # ! 모든 classes의 AP 평균
-    # ! sum(average_precisions) / len(average_precisions)
+    # ! = 모든 classes의 AP 평균 = sum(average_precisions) / len(average_precisions)
     # ! 현재의 예시는 고정된 IoU threshold를 사용함 (i.e., 0.5)
     # ! 따라서 현재 계산된 mAP는 mAP@0.5임
-    # ! IoU threshold를 변경하면서 mAP를 구하고, 이를 평균한 mAP를 사용할 수도 있음
-    # ! ex. mAP@0.5:0.05:0.95 -> IoU threshold를 0.5에서 0.95까지 0.05씩 증가시키면서 각각에 대해 평가했을 때 평균적인 mAP 값
+    # ! 고정된 IoU threshold를 사용하는 대신 IoU threshold를 변경하면서 mAP를 구하고, 이를 평균한 mAP를 사용할 수도 있음
+    # ! e.g., mAP@0.5:0.05:0.95 -> IoU threshold를 0.5에서 0.95까지 0.05씩 증가시키면서 각각 평가했을 때 평균적인 mAP 값
 
     return sum(average_precisions) / len(average_precisions)
 
@@ -346,6 +349,9 @@ def get_bboxes(
         batch_size = x.shape[0] # ! B
 
         # ! gt bboxes 변환
+        # ! 예측/gt bboxes는 grid 혹은 grid cell에 대해 상대적으로 표현되어 있음
+        # ! 이를 원본 이미지 차원의 값으로 변경해줌
+        # ! 또한 각 grid cell마다 최적의 예측값을 선정하거나, 할당된 gt label을 식별하는 연산 수행
         # ! labels = (B, S, S, 30)
         true_bboxes = cellboxes_to_boxes(labels)
         # ! all_bboxes = (B, 49, 6) -> 모든 batch, 모든 grid cell 위치에서의 할당된 gt bbox 정보를 담은 3차원 리스트
@@ -368,7 +374,7 @@ def get_bboxes(
                 threshold=threshold,
                 box_format=box_format,
             )
-            # ! nms_boxes = (m, 6) -> NMS 적용 이후 남아 있는 m개의 bboxes
+            # ! nms_boxes = (p, 6) -> NMS 적용 이후 남아 있는 p개의 bboxes
 
 
             #if batch_idx == 0 and idx == 0:

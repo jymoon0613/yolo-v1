@@ -45,7 +45,7 @@ class YoloLoss(nn.Module):
         # Calculate IoU for the two predicted bounding boxes with target bbox
         # ! YOLOv1은 하나의 grid cell에서 두 개의 bbox를 예측함
         # ! 이때 두 개의 bbox 중 gt_box와 IoU가 더 큰 bbox에만 gt bbox를 할당함
-        # ! 이를 위해 두 개의 예측된 bbox와 gt bbox를 IoU를 모두 계산함
+        # ! 이를 위해 두 개의 예측된 bbox와 gt bbox의 IoU를 모두 계산함
         # ! utils.intersection_over_union 참조
         iou_b1 = intersection_over_union(predictions[..., 21:25], target[..., 21:25])
         iou_b2 = intersection_over_union(predictions[..., 26:30], target[..., 21:25])

@@ -98,6 +98,7 @@ class VOCDataset(torch.utils.data.Dataset):
 
                 # Set one hot encoding for class_label
                 # ! 20개의 class 중 해당하는 gt class label 저장
+                # ! one-hot form으로 구성되어 있음
                 label_matrix[i, j, class_label] = 1
 
         # ! image        = (3, 448, 448) -> 입력 이미지
